@@ -1,14 +1,25 @@
 module Main where
 import Text.Pandoc
+import Text.Pandoc.Walk
 import System.Environment (getArgs)
+import qualified Data.Text as T
+import qualified Data.Text.IO as Tio
 
-extractBib :: Pandoc -> String
-extractBib (Pandoc _ bl) = concatMap f bl
-  where f (CodeBlock (_,classes,_) s) | "bib" `elem` classes = s ++ "\n"
-        f _ = []
+extractBib :: Inline -> String
+extractBib (Code attr str) = str ++ "\n"
+extractBib _ = ""
 
-processFile :: String -> String
-processFile = extractBib . readMarkdown defaultParserState
+extractBibs :: Pandoc -> String
+extractBibs = query extractBib
 
 main :: IO ()
-main = getArgs >>= mapM readFile >>= mapM_ (putStrLn . processFile)
+main = do
+  args <- getArgs
+  v <- readFile (head args)
+  x <- runIO $ do
+         doc <- readMarkdown def (T.pack v)
+         v <- return $ extractBibs doc
+         return v
+  y <- handleError x
+  putStrLn y
+

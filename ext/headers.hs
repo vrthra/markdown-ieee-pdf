@@ -3,13 +3,14 @@
 -- pandoc -t -S json myexample.md | ./strongify | pandoc -f json -t latex
 
 import Text.Pandoc
+import Text.Pandoc.JSON
 
 
 
-main = toJsonFilter makeItStrong
+main = toJSONFilter makeItStrong
 
 makeItStrong (Strong xs) = [latex "\\strong{"] ++ xs ++ [latex "}"]
-  where latex = RawInline "latex"
+  where latex = RawInline (Format "latex")
 makeItStrong x           = [x]
 
 {-main = toJsonFilter makeItStrong
